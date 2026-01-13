@@ -3,12 +3,15 @@ name: Build Kernel with KernelSU + ksunext
 on:
   workflow_dispatch:
     inputs:
+      kernel_repo_url:
+        description: 'URL to the kernel source repository'
+        required: true
       boot_img_url:
         description: 'URL to stock boot or init_boot image'
         required: true
       defconfig:
-        description: 'Base kernel defconfig (e.g., lahaina_qgki.defconfig)'
-        default: 'lahaina_qgki.defconfig'
+        description: 'Base kernel defconfig (e.g., lahaina_qgki_defconfig)'
+        default: 'lahaina_qgki_defconfig'
         required: true
 
 jobs:
@@ -23,35 +26,39 @@ jobs:
             gcc-aarch64-linux-gnu cpio unzip wget
 
       - name: Clone kernel source
-        uses: actions/checkout@v3
-
-      - name: Apply KernelSU
         run: |
-          git submodule add https://github.com/KernelSU/KernelSU kernel/kernelSU || true
+          git clone --depth=1 ${{ github.event.inputs.kernel_repo_url }} kernel
+
+      - name: Clone KernelSU
+        run: |
+          git clone --depth=1 https://github.com/KernelSU/KernelSU.git kernel/kernelSU
+
+      - name: Apply KernelSU config and ksunext patch
+        run: |
+          cd kernel
           cp arch/arm64/configs/${{ github.event.inputs.defconfig }} arch/arm64/configs/ksu_temp_defconfig
           echo 'CONFIG_KERNELSU=y' >> arch/arm64/configs/ksu_temp_defconfig
-
-      - name: Apply ksunext patch
-        run: |
-          curl -L -o ksunext.patch https://your.patch.host/ksunext.patch
-          git apply ksunext.patch
+          curl -L -o ../ksunext.patch https://your.patch.host/ksunext.patch
+          git apply ../ksunext.patch
 
       - name: Download boot image
         run: |
           curl -L ${{ github.event.inputs.boot_img_url }} -o stock_boot.img
 
-      - name: Set up environment
+      - name: Build Kernel
         run: |
+          cd kernel
           export ARCH=arm64
           export SUBARCH=arm64
           export CROSS_COMPILE=aarch64-linux-gnu-
           export KBUILD_BUILD_USER=github
           export KBUILD_BUILD_HOST=actions
-
-      - name: Build Kernel
-        run: |
           make O=out ksu_temp_defconfig
           make -j$(nproc) O=out
+
+      - name: Debug kernel build output
+        run: |
+          ls -R kernel/out/arch/arm64/boot || echo "Kernel output folder empty!"
 
       - name: Repack boot image with new kernel
         run: |
@@ -60,7 +67,7 @@ jobs:
           make
           cd ..
           ./magiskboot/magiskboot unpack stock_boot.img
-          cp out/arch/arm64/boot/Image.gz-dtb ./kernel || cp out/arch/arm64/boot/Image.gz ./kernel
+          cp kernel/out/arch/arm64/boot/Image.gz-dtb ./kernel || cp kernel/out/arch/arm64/boot/Image.gz ./kernel
           ./magiskboot/magiskboot repack stock_boot.img
           ls -lh
           mv new-boot.img patched_boot.img || echo "Repack failed, no output image generated."
@@ -70,7 +77,7 @@ jobs:
           file patched_boot.img || echo "No output image found! Something probably went wrong."
 
       - name: Upload patched boot image
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@4
         with:
           name: patched-boot
           path: patched_boot.img
