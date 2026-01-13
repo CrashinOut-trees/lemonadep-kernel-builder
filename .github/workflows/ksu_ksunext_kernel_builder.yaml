@@ -77,7 +77,7 @@ jobs:
           file patched_boot.img || echo "No output image found! Something probably went wrong."
 
       - name: Upload patched boot image
-        uses: actions/upload-artifact@4.4.3
+        uses: actions/upload-artifact@v4.4.3
         with:
           name: patched-boot
           path: patched_boot.img
