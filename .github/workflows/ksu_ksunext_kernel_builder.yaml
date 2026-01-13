@@ -53,17 +53,24 @@ jobs:
           make O=out ksu_temp_defconfig
           make -j$(nproc) O=out
 
-      - name: Replace kernel in boot image
+      - name: Repack boot image with new kernel
         run: |
-          git clone https://github.com/topjohnwu/magiskboot
+          git clone https://github.com/topjohnwu/magiskboot.git
           cd magiskboot
-          ./magiskboot unpack ../stock_boot.img
-          cp ../out/arch/arm64/boot/Image.gz ../magiskboot/kernel
-          ./magiskboot repack ../stock_boot.img
-          mv new-boot.img ../patched_boot.img
+          make
+          cd ..
+          ./magiskboot/magiskboot unpack stock_boot.img
+          cp out/arch/arm64/boot/Image.gz-dtb ./kernel || cp out/arch/arm64/boot/Image.gz ./kernel
+          ./magiskboot/magiskboot repack stock_boot.img
+          ls -lh
+          mv new-boot.img patched_boot.img || echo "Repack failed, no output image generated."
 
-      - name: Upload boot image
-        uses: actions/upload-artifact@v3
+      - name: Show boot image details
+        run: |
+          file patched_boot.img || echo "No output image found! Something probably went wrong."
+
+      - name: Upload patched boot image
+        uses: actions/upload-artifact@v4
         with:
           name: patched-boot
           path: patched_boot.img
