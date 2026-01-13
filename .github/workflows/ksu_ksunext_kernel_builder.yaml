@@ -11,7 +11,7 @@ on:
         required: true
       defconfig:
         description: 'Base kernel defconfig (e.g., lahaina_qgki_defconfig)'
-        default: 'lahaina_qgki_defconfig'
+        default: 'vendor/lahaina-qgki_defconfig'
         required: true
 
 jobs:
