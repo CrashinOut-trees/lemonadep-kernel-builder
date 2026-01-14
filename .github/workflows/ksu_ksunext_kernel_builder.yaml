@@ -38,7 +38,7 @@ jobs:
           cd kernel
           cp arch/arm64/configs/${{ github.event.inputs.defconfig }} arch/arm64/configs/ksu_temp_defconfig
           echo 'CONFIG_KERNELSU=y' >> arch/arm64/configs/ksu_temp_defconfig
-          curl -L -o ../ksunext.patch https://your.patch.host/ksunext.patch
+          curl -L -o ../ksunext.patch https://github.com/KernelSU-Next/KPatch-Next.git
           git apply ../ksunext.patch
 
       - name: Download boot image
