@@ -38,8 +38,7 @@ jobs:
           cd kernel
           cp arch/arm64/configs/${{ github.event.inputs.defconfig }} arch/arm64/configs/ksu_temp_defconfig
           echo 'CONFIG_KERNELSU=y' >> arch/arm64/configs/ksu_temp_defconfig
-          curl -LSs "https://raw.githubusercontent.com/KernelSU-Next/KernelSU-Next/next/kernel/setup.sh" | bash -
-          git apply ../setup.sh
+          curl -LSs "https://raw.githubusercontent.com/KernelSU-Next/KernelSU-Next/next/kernel/setup.sh" | bash -          
 
       - name: Download boot image
         run: |
