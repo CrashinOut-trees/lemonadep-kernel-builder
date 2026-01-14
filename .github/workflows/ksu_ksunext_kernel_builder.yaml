@@ -31,7 +31,7 @@ jobs:
 
       - name: Clone KernelSU
         run: |
-          git clone --depth=1 https://github.com/KernelSU/KernelSU.git kernel/kernelSU
+          git clone --depth=1 https://github.com/tiann/KernelSU kernel/kernelSU
 
       - name: Apply KernelSU config and ksunext patch
         run: |
