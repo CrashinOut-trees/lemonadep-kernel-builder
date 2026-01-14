@@ -10,7 +10,7 @@ on:
         description: 'URL to stock boot or init_boot image'
         required: true
       defconfig:
-        description: 'Base kernel defconfig (e.g., lahaina_qgki_defconfig)'
+        description: 'Base kernel defconfig (e.g., vendor/lahaina-qgki_defconfig)'
         default: 'vendor/lahaina-qgki_defconfig'
         required: true
 
@@ -31,14 +31,18 @@ jobs:
 
       - name: Clone KernelSU
         run: |
-          git clone --depth=1 https://github.com/tiann/KernelSU kernel/kernelSU
+          git clone --depth=1 https://github.com/KernelSU/KernelSU.git kernel/kernelSU
 
       - name: Apply KernelSU config and ksunext patch
         run: |
           cd kernel
           cp arch/arm64/configs/${{ github.event.inputs.defconfig }} arch/arm64/configs/ksu_temp_defconfig
           echo 'CONFIG_KERNELSU=y' >> arch/arm64/configs/ksu_temp_defconfig
-          curl -LSs "https://raw.githubusercontent.com/KernelSU-Next/KernelSU-Next/next/kernel/setup.sh" | bash -          
+          curl -LSs "https://raw.githubusercontent.com/KernelSU-Next/KernelSU-Next/next/kernel/setup.sh" | bash -
+
+      - name: Patch SCHED_PRINT macro for WALT
+        run: |
+          sed -i 's/%llu/%u/g' kernel/kernel/sched/walt/walt.c
 
       - name: Download boot image
         run: |
@@ -76,7 +80,7 @@ jobs:
           file patched_boot.img || echo "No output image found! Something probably went wrong."
 
       - name: Upload patched boot image
-        uses: actions/upload-artifact@v4.4.3
+        uses: actions/upload-artifact@v4.3.1
         with:
           name: patched-boot
           path: patched_boot.img
