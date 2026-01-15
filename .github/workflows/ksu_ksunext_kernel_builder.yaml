@@ -22,7 +22,7 @@ jobs:
         run: |
           sudo apt update
           sudo apt install -y git make curl lz4 bc bison flex build-essential \
-            libssl-dev libncurses5-dev python-is-python3 \
+            libssl-dev libelf-dev libncurses5-dev python-is-python3 \
             gcc-aarch64-linux-gnu cpio unzip wget
 
       - name: Clone kernel source
