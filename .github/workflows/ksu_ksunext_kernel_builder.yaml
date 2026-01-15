@@ -69,11 +69,15 @@ jobs:
           cd magiskboot
           make
           cd ..
-          ./magiskboot/magiskboot unpack stock_boot.img
-          cp kernel/out/arch/arm64/boot/Image.gz-dtb ./kernel || cp kernel/out/arch/arm64/boot/Image.gz ./kernel
-          ./magiskboot/magiskboot repack stock_boot.img
+          mkdir -p magiskboot_work
+          pushd magiskboot_work
+          ../magiskboot/magiskboot unpack ../stock_boot.img
+          cp ../kernel/out/arch/arm64/boot/Image.gz-dtb kernel \
+            || cp ../kernel/out/arch/arm64/boot/Image.gz kernel
+          ../magiskboot/magiskboot repack stock_boot.img
           ls -lh
-          mv new-boot.img patched_boot.img || echo "Repack failed, no output image generated."
+          popd
+          mv magiskboot_work/new-boot.img patched_boot.img || echo "Repack failed, no output image generated."
 
       - name: Show boot image details
         run: |
